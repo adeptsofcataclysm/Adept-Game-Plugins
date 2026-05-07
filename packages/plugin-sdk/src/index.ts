@@ -3,42 +3,34 @@
  *
  * Canonical shared types for the Adept show platform.
  * Adept-Game provides runtime implementations; plugins import only from here.
+ *
+ * Main anchor phases: lobby  →  round:1 → round:2 → round:3  →  final  →  game_over
+ * Everything else (spectator_picks, story_video, donations, between_final, wheel,
+ * roulette …) is a transition plugin_segment or a card-kind handler.
  */
 
 // ---------------------------------------------------------------------------
-// Phase
+// Phase — anchor phases + opaque plugin segments
 // ---------------------------------------------------------------------------
 
 export type RoundIndex = 1 | 2 | 3;
 
 export type Phase =
   | { kind: "lobby" }
-  | { kind: "spectator_picks" }
   | { kind: "round"; roundIndex: RoundIndex }
-  | { kind: "mini_wheel"; roundIndex: RoundIndex }
-  | { kind: "mini_roulette"; roundIndex: RoundIndex }
-  | { kind: "story_video" }
-  | { kind: "donations" }
-  | { kind: "between_final" }
   | { kind: "final" }
   | { kind: "game_over" }
-  /** Opaque segment injected by a plugin between anchor rounds. */
+  /** Opaque segment registered by a plugin (first-party or third-party). */
   | { kind: "plugin_segment"; id: string; pluginId: string };
 
 export function phaseKey(p: Phase): string {
   switch (p.kind) {
     case "lobby":
-    case "spectator_picks":
-    case "story_video":
-    case "donations":
-    case "between_final":
     case "final":
     case "game_over":
       return p.kind;
     case "round":
-    case "mini_wheel":
-    case "mini_roulette":
-      return `${p.kind}:${p.roundIndex}`;
+      return `round:${p.roundIndex}`;
     case "plugin_segment":
       return `plugin_segment:${p.pluginId}:${p.id}`;
   }
@@ -98,16 +90,13 @@ export type SessionSnapshot = {
   currentTurnSeat: number;
   roundBoard: Record<RoundIndex, RoundBoardRuntime>;
   finalTransitionBoard: RoundBoardRuntime;
-  miniWheelPlaysByRound: [number, number, number];
-  miniRoulettePlaysByRound: [number, number, number];
   /**
-   * Generic per-segment state, written only by the owning plugin's server handler.
-   * Keyed by segmentId. Untouched by the core session service.
+   * All plugin-managed state lives here, keyed by a stable string the plugin
+   * owns (e.g. `"spectator_picks"`, `"donations"`, `"wheel_r1"`).
+   * The core session service never reads or writes this object.
    */
   segmentState: Record<string, unknown>;
   openingShow: { emojiLineIndex: number; spectatorCorrectCounts: Record<string, number> };
-  spectatorPicks: { locked: boolean; bets: Record<string, 1 | 2 | 3 | 4 | 5> };
-  donations: { bySeat: [number | null, number | null, number | null, number | null, number | null] };
   lottery: { candidates: string[]; optOut: Record<string, true>; lastWinnerNick: string | null };
   chat: ChatLine[];
   participants: Participant[];
@@ -121,7 +110,7 @@ export type MutatorResult = { ok: true } | { ok: false; error: string };
 
 /**
  * Narrow authority surface for plugin server handlers.
- * Plugins must not write to snapshot fields directly outside `segmentState`.
+ * Use `setSegmentState` for persistent data; `requestTransition` for phase changes.
  */
 export type Ctx = {
   readonly snapshot: SessionSnapshot;
@@ -163,11 +152,8 @@ export type SegmentActionHandler = (
 
 export type SegmentDefinition = {
   pluginId: string;
-  /** Matches `SegmentCapability.id` from the manifest. */
   id: string;
-  /** Phase key of the preceding anchor, e.g. `"round:2"`. */
   fromPhaseKey: string;
-  /** Phase key of the following anchor, e.g. `"round:3"`. */
   toPhaseKey: string;
   onAction?: SegmentActionHandler;
 };
@@ -190,7 +176,8 @@ export type SegmentViewProps = {
   snapshot: SessionSnapshot;
   segmentId: string;
   pluginId: string;
-  sendAction(action: string, payload?: unknown): void;
+  /** Send any WS message (e.g. `spectator_pick_bet`, `plugin_action`). */
+  send(type: string, payload: unknown): void;
 };
 
 export type CardExtensionProps = {
@@ -201,10 +188,6 @@ export type CardExtensionProps = {
 };
 
 export interface PluginClientRegistry {
-  /**
-   * Register a React component that renders inside `<PluginSegmentHost />`.
-   * Typed as `unknown` so the SDK carries no React peer-dep; host casts to ComponentType.
-   */
   registerSegmentView(pluginId: string, segmentId: string, component: unknown): void;
   registerCardExtension(cardKind: string, component: unknown): void;
 }
