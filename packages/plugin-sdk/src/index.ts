@@ -4,9 +4,10 @@
  * Canonical shared types for the Adept show platform.
  * Adept-Game provides runtime implementations; plugins import only from here.
  *
- * Main anchor phases: lobby  →  round:1 → round:2 → round:3  →  final  →  game_over
+ * Main anchor phases: lobby  →  round:1 → round:2 → round:3  →  final
  * Everything else (spectator_picks, story_video, donations, between_final, wheel,
  * roulette …) is a transition plugin_segment or a card-kind handler.
+ * `final` is terminal — there is no separate "game over" state.
  */
 
 // ---------------------------------------------------------------------------
@@ -19,7 +20,6 @@ export type Phase =
   | { kind: "lobby" }
   | { kind: "round"; roundIndex: RoundIndex }
   | { kind: "final" }
-  | { kind: "game_over" }
   /** Opaque segment registered by a plugin (first-party or third-party). */
   | { kind: "plugin_segment"; id: string; pluginId: string };
 
@@ -27,7 +27,6 @@ export function phaseKey(p: Phase): string {
   switch (p.kind) {
     case "lobby":
     case "final":
-    case "game_over":
       return p.kind;
     case "round":
       return `round:${p.roundIndex}`;
