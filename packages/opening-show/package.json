@@ -1,0 +1,40 @@
+{
+  "name": "@adept-plugins/opening-show",
+  "version": "1.0.0",
+  "description": "Opening show segment — lobby → opening_show → spectator_bet",
+  "type": "module",
+  "main": "./dist/server.js",
+  "exports": {
+    ".": "./dist/server.js",
+    "./client": "./dist/client.js"
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "peerDependencies": {
+    "@adept/plugin-sdk": "^1.0.0",
+    "react": "^18.0.0"
+  },
+  "devDependencies": {
+    "@adept/plugin-sdk": "*",
+    "@types/react": "^18.3.0",
+    "typescript": "^5.7.2"
+  },
+  "adept": {
+    "pluginId": "opening-show",
+    "apiVersion": 1,
+    "capabilities": {
+      "segments": [
+        {
+          "id": "opening_show",
+          "slot": "after:lobby",
+          "next": "plugin_segment:spectator-bet:spectator_bet"
+        }
+      ],
+      "cardKinds": []
+    }
+  }
+}
+

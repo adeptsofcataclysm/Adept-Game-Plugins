@@ -1,7 +1,7 @@
 /**
  * @adept-plugins/spectator-bet — server entry point
  *
- * Registers the spectator_bet segment: lobby → spectator_bet → round:1
+ * Registers the spectator_bet segment: opening_show → spectator_bet → round:1
  */
 
 import type { PluginServerRegistry, MutatorResult, Ctx, Actor } from "@adept/plugin-sdk";
@@ -52,7 +52,7 @@ export function registerServer(registry: PluginServerRegistry): void {
   registry.registerSegment({
     pluginId: PLUGIN_ID,
     id: SEGMENT_ID,
-    fromPhaseKey: "lobby",
+    fromPhaseKey: "plugin_segment:opening-show:opening_show",
     toPhaseKey: "round:1",
     onEvent,
   });
