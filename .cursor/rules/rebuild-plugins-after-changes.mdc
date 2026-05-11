@@ -1,0 +1,37 @@
+---
+description: Rebuild Adept plugin packages after editing plugin source so dist/ matches src/.
+globs: packages/**/*
+alwaysApply: false
+---
+
+# Rebuild plugins after source changes
+
+The host app (`Adept-Game`) resolves plugins from each package’s **`dist/`** output (`package.json` `main` / `exports`). Edits under `packages/<name>/src/**` are **not** picked up until you compile.
+
+## When this applies
+
+Any time you change TypeScript or other build inputs for a workspace under `packages/` (plugins or `@adept/plugin-sdk`).
+
+## What to run
+
+From the **Adept-Game-Plugins** repo root:
+
+- **One plugin** (replace with the package name from its `package.json`):
+
+  ```bash
+  npm run build --workspace=@adept-plugins/spectator-bet
+  ```
+
+- **SDK only**:
+
+  ```bash
+  npm run build --workspace=@adept/plugin-sdk
+  ```
+
+- **Everything** (SDK first, then all workspaces — safest after SDK or multi-package edits):
+
+  ```bash
+  npm run build
+  ```
+
+Finish the task by **running the appropriate build yourself** and confirming it exits successfully; do not leave “rebuild locally” as a manual step for the user unless they explicitly asked not to run commands.

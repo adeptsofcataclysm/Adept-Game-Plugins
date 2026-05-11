@@ -95,6 +95,8 @@ export type SessionSnapshot = {
   showId: string;
   version: number;
   phase: Phase;
+  /** Display names for quiz seats 1–5 (indices 0–4). Host-editable. */
+  seatNames: [string, string, string, string, string];
   scores: Scores;
   currentTurnSeat: number;
   roundBoard: Record<RoundIndex, RoundBoardRuntime>;
@@ -194,6 +196,8 @@ export type SegmentViewProps = {
   snapshot: SessionSnapshot;
   segmentId: string;
   pluginId: string;
+  /** Same id as WebSocket `join`; aligns with server maps keyed by participant id. */
+  participantId: string;
   /** Send any WS message (e.g. `spectator_pick_bet`, `plugin_action`). */
   send(type: string, payload: unknown): void;
 };
