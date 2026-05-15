@@ -487,7 +487,7 @@ export function registerClient(registry: PluginClientRegistry): void {
   registry.registerCardKindClient(CARD_KIND, {
     label: "Енот в мешке",
     description:
-      "Показывает анимацию енота; после неё ведущий или игрок с ходом передаёт ход выбранному месту.",
+      "Как Кот в мешке, но лучше.",
     PreRevealAction: RaccoonPreReveal,
   });
 }

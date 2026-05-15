@@ -349,8 +349,10 @@ export type CardKindClientDef = {
   PostRevealAction?: unknown;
   /** Mode `replace_card`: replaces the standard modal body. */
   ModalView?: unknown;
-  /** Mode `replace_field`: replaces the entire `ShowPage` UI while the card is open. */
+  /** Mode `replace_field`: replaces the main quiz column while the card is open. */
   FullScreenView?: unknown;
+  /** Host-only buttons rendered in the question modal footer row (answer stage). */
+  HostAnswerFooterAction?: unknown;
 };
 
 export interface PluginClientRegistry {
